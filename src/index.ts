@@ -41,8 +41,8 @@ export const Config: Schema<ProofConfig> = Schema.object({
   stopOnFirstFailure: Schema.boolean().default(true),
 })
 
-/** Render a report for the model. */
-function renderReport(value: {
+/** Canonical value returned by the `verify` tool. */
+interface VerifyValue {
   passed: boolean
   skipped: boolean
   reason?: string
@@ -55,7 +55,10 @@ function renderReport(value: {
     timedOut: boolean
     output: string
   }>
-}): string {
+}
+
+/** Render a report for the model. */
+function renderReport(value: VerifyValue): string {
   if (value.skipped) {
     return `Verification skipped: ${value.reason ?? 'no checks configured or detected.'}`
   }
@@ -94,32 +97,30 @@ export function apply(ctx: Context, config: ProofConfig): void {
             type: 'object',
             additionalProperties: false,
             properties: {
-              passed: { type: 'boolean' },
-              skipped: { type: 'boolean' },
+              passed: { type: 'boolean', required: true },
+              skipped: { type: 'boolean', required: true },
               reason: { type: 'string' },
-              cwd: { type: 'string' },
+              cwd: { type: 'string', required: true },
               checks: {
                 type: 'array',
+                required: true,
                 items: {
                   type: 'object',
                   additionalProperties: false,
                   properties: {
-                    name: { type: 'string' },
-                    command: { type: 'string' },
-                    ok: { type: 'boolean' },
-                    exitCode: { type: 'number' },
-                    timedOut: { type: 'boolean' },
-                    output: { type: 'string' },
+                    name: { type: 'string', required: true },
+                    command: { type: 'string', required: true },
+                    ok: { type: 'boolean', required: true },
+                    exitCode: { type: 'number', required: true },
+                    timedOut: { type: 'boolean', required: true },
+                    output: { type: 'string', required: true },
                   },
                 },
               },
             },
           },
-          render: (_args, value) => [
-            { type: 'text', text: renderReport(value as Parameters<typeof renderReport>[0]) },
-          ],
+          render: (_args, value) => [{ type: 'text', text: renderReport(value) }],
         },
-        timeoutMs: 300_000,
         isConcurrencySafe: () => false,
         async execute(args, exec) {
           const cwd = gate.cwdFor(exec.agent)
@@ -151,6 +152,10 @@ export function apply(ctx: Context, config: ProofConfig): void {
 
   ctx.on('session/event', (session, event) => {
     gate.noteEvent(session, event)
+  })
+
+  ctx.on('session/disposed', (session) => {
+    gate.forget(session.id)
   })
 
   ctx.on('agent/turn-stopping', async (payload) => {

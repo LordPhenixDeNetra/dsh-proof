@@ -79,6 +79,7 @@ test('apply registers a valid tool, a prompt section and both hooks', () => {
     assert.equal(captured.tool?.parameters.type, 'object')
     assert.equal(captured.section?.name, 'proof')
     assert.equal(typeof captured.handlers.get('session/event'), 'function')
+    assert.equal(typeof captured.handlers.get('session/disposed'), 'function')
     assert.equal(typeof captured.handlers.get('agent/turn-stopping'), 'function')
 
     const { agent } = fakeAgent(dir)

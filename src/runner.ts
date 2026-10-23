@@ -6,7 +6,6 @@
  * file sandbox, exactly like a script the user typed in a terminal.
  */
 import { spawn, type ChildProcess } from 'node:child_process'
-import { win32 } from 'node:path'
 
 /** Outcome of one shell command. */
 export interface CommandOutcome {
@@ -32,7 +31,10 @@ function appendCapped(current: string, chunk: Buffer, cap: number): string {
 
 /** Head + tail truncation that preserves both the command context and the failure. */
 export function truncateOutput(text: string, maxChars: number): string {
-  const clean = text.replace(/\r\n/g, '\n').trim()
+  const clean = text
+    .replace(/\u001b\[[0-?]*[ -/]*[@-~]/g, '')
+    .replace(/\r\n?/g, '\n')
+    .trim()
   if (clean.length <= maxChars) return clean
   const head = clean.slice(0, Math.min(1200, Math.floor(maxChars / 3)))
   const tail = clean.slice(-(maxChars - head.length - 32))
@@ -49,7 +51,13 @@ function killTree(child: ChildProcess): void {
         stdio: 'ignore',
       }).on('error', () => {})
     } else {
-      child.kill('SIGKILL')
+      // The child is its own process-group leader (detached: true), so the
+      // negative pid also reaches test workers it spawned.
+      try {
+        process.kill(-pid, 'SIGKILL')
+      } catch {
+        child.kill('SIGKILL')
+      }
     }
   } catch {
     try {
@@ -82,12 +90,14 @@ export function runCommand(
     let settled = false
     let timedOut = false
     let timer: NodeJS.Timeout | undefined
+    let killFallback: NodeJS.Timeout | undefined
     let child: ChildProcess
 
     const finish = (exitCode: number, note = '') => {
       if (settled) return
       settled = true
       if (timer) clearTimeout(timer)
+      if (killFallback) clearTimeout(killFallback)
       signal?.removeEventListener('abort', onAbort)
       const prefix = timedOut ? `[timed out after ${timeoutMs}ms]\n` : ''
       const combined = [prefix + note, stdout, stderr].filter(Boolean).join('\n')
@@ -109,6 +119,7 @@ export function runCommand(
         cwd,
         shell: true,
         windowsHide: true,
+        detached: process.platform !== 'win32',
         env: process.env,
         stdio: ['ignore', 'pipe', 'pipe'],
       })
@@ -125,11 +136,13 @@ export function runCommand(
       timedOut = true
       killTree(child)
       // A killed shell should close; keep a hard fallback for stuck trees.
-      setTimeout(() => finish(-1), 3000).unref?.()
+      killFallback = setTimeout(() => finish(-1), 3000)
+      killFallback.unref?.()
     }, timeoutMs)
     timer.unref?.()
 
     signal?.addEventListener('abort', onAbort, { once: true })
+    if (signal?.aborted) onAbort()
 
     child.stdout?.on('data', (chunk: Buffer) => {
       stdout = appendCapped(stdout, chunk, maxChars)
@@ -147,9 +160,4 @@ export function exitLabel(code: number): string {
   if (code === 0) return 'ok'
   if (code === -1) return 'failed to run'
   return `exit ${code}`
-}
-
-/** Platform-aware absolute path helper used only for diagnostics. */
-export function isWindowsAbsolute(path: string): boolean {
-  return win32.isAbsolute(path)
 }
