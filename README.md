@@ -1,57 +1,79 @@
-# dsh-proof — le harnais qui exige des preuves
-
 <p align="center">
-  <img src="public/logo/dsh-proof-icon.png" width="128" alt="Logo dsh-proof : crochets de code formant une porte avec une coche">
+  <img src="public/logo/dsh-proof-icon.png" width="120" alt="dsh-proof logo">
 </p>
 
-> **English:** dsh-proof runs your project's typecheck/lint/tests after file edits and prevents the agent from ending the turn while they fail.
+<h1 align="center">dsh-proof</h1>
 
-Plugin **DeepSeek Harness** (DSH) : après chaque modification de fichiers, il exécute les vérifications du projet (typecheck, lint, tests) et **refuse de laisser l'agent terminer son tour tant qu'elles échouent**. L'agent reçoit la sortie d'erreur et un tour supplémentaire pour corriger — au lieu de déclarer « c'est fait » sans preuve.
+<p align="center">
+  <strong>A verification gate for DeepSeek Harness.</strong><br>
+  Run typecheck, lint, and tests after every edit — and keep the agent working until they pass.
+</p>
+
+<p align="center">
+  <a href="#features">Features</a> •
+  <a href="#quick-start">Quick start</a> •
+  <a href="#usage">Usage</a> •
+  <a href="#configuration">Configuration</a> •
+  <a href="#security">Security</a> •
+  <a href="#documentation">Docs</a> •
+  <a href="#contributing">Contributing</a>
+</p>
+
+<p align="center">
+  <a href="https://github.com/NetraDevLPDN/dsh-proof/actions/workflows/ci.yml"><img src="https://github.com/NetraDevLPDN/dsh-proof/actions/workflows/ci.yml/badge.svg?branch=main" alt="CI"></a>
+  <a href="https://github.com/NetraDevLPDN/dsh-proof/releases"><img src="https://img.shields.io/github/v/release/NetraDevLPDN/dsh-proof?style=flat-square&label=release" alt="Release"></a>
+  <a href="LICENSE"><img src="https://img.shields.io/github/license/NetraDevLPDN/dsh-proof?style=flat-square" alt="License: MIT"></a>
+  <a href="https://nodejs.org/"><img src="https://img.shields.io/badge/node-%3E%3D22.19-339933?style=flat-square&logo=node.js&logoColor=white" alt="Node >=22.19"></a>
+  <a href="https://github.com/deepseek-ai/deepseek-harness"><img src="https://img.shields.io/badge/DSH-%3E%3D0.2.1--rc.2-4D6BFE?style=flat-square" alt="DSH >=0.2.1-rc.2"></a>
+  <a href="https://www.typescriptlang.org/"><img src="https://img.shields.io/badge/TypeScript-5.9-3178C6?style=flat-square&logo=typescript&logoColor=white" alt="TypeScript 5.9"></a>
+  <a href="https://github.com/NetraDevLPDN/dsh-proof/stargazers"><img src="https://img.shields.io/github/stars/NetraDevLPDN/dsh-proof?style=flat-square&label=stars" alt="GitHub stars"></a>
+  <a href="https://github.com/NetraDevLPDN/dsh-proof/pulls"><img src="https://img.shields.io/badge/PRs-welcome-brightgreen?style=flat-square" alt="PRs welcome"></a>
+</p>
 
 ---
 
-## Pourquoi ce plugin
+## Features
 
-Le mode d'échec le plus coûteux d'un agent de code n'est pas la mauvaise syntaxe : c'est **la conclusion prématurée**. L'agent modifie trois fichiers, écrit « terminé », et vous découvrez à la main que le typecheck casse et que deux tests échouent.
+The most expensive failure mode of a coding agent is not bad syntax — it is **premature completion**. The agent edits three files, writes “done”, and you discover by hand that typechecking fails and two tests are broken.
 
-`dsh-proof` couvre le moment précis où l'agent veut s'arrêter : il transforme les checks du projet en **condition de sortie du tour**.
+`dsh-proof` targets the exact moment the agent tries to stop: it turns the project’s checks into a **turn-exit condition**.
 
-- **Zéro configuration** sur un projet Node dont le gestionnaire de paquets est disponible.
-- **Boucle de correction bornée** : `maxReruns` limite les relances, donc pas de boucle infinie.
-- **Outil `verify`** : l'agent peut lancer les mêmes checks lui-même avant de conclure.
-- **Section de prompt** : l'agent sait quelles vérifications sont actives et qu'elles sont bloquantes.
-- **Hôte uniquement** : aucun bundle navigateur, aucune dépendance UI.
+- **Zero configuration** on a Node project whose package manager is available.
+- **Bounded correction loop** — `maxReruns` limits retries, so there is no infinite loop.
+- **`verify` tool** — the agent can run the same checks itself before claiming completion.
+- **Prompt section** — the agent knows which checks are active and that they block the turn.
+- **Host-only** — no browser bundle and no UI dependency.
 
-## Prérequis
+## Quick start
 
-- DSH `>=0.2.1-rc.2 <0.3.0` (le paquet déclare cette plage dans `engines.dsh`).
+### Prerequisites
+
+- DSH `>=0.2.1-rc.2 <0.3.0` (declared in `engines.dsh`).
 - Node.js `>=22.19`.
-- Le gestionnaire de paquets du projet (`npm`, `pnpm`, `yarn` ou `bun`) disponible dans le `PATH`.
-- Un `package.json` avec au moins un script `typecheck`, `lint`, `test` ou `check`, ou des `checks` explicites.
+- The project’s package manager (`npm`, `pnpm`, `yarn`, or `bun`) available on `PATH`.
+- A `package.json` with at least one of `typecheck`, `lint`, `test`, or `check`, or explicit `checks`.
 
-## Installation
+### Desktop app
 
-### Application Desktop
-
-1. Dépliez la barre latérale gauche (**Ctrl+B** si elle est repliée).
-2. Ouvrez le panneau **Plugins** (icône en forme d'hélice, sous « Nouvelle session »).
-3. Cliquez sur **Ajouter un plugin**.
-4. Collez le chemin absolu de l'archive, ou le nom `dsh-proof` après publication npm.
-5. Cochez la case de confiance, installez, puis redémarrez DSH si l'application le demande.
+1. Open the left sidebar (**Ctrl+B** if it is collapsed).
+2. Open the **Plugins** panel (the pinwheel icon below “New session”).
+3. Click **Add plugin**.
+4. Paste the release asset URL, or `dsh-proof` once the npm package is published.
+5. Accept the trust checkbox, install, and restart DSH if prompted.
 
 ```text
-N:\OneDrive - Université Cheikh Anta DIOP de DAKAR\MixedProjects\HarnessPluginTest\dsh-proof-0.1.2.tgz
+https://github.com/NetraDevLPDN/dsh-proof/releases/download/v0.1.2/dsh-proof-0.1.2.tgz
 ```
 
-> Le profil `desktop` est géré exclusivement par l'application : `dsh plugin --profile desktop` est refusé par la CLI.
+> The `desktop` profile is managed by the Electron app; `dsh plugin --profile desktop` is intentionally refused by the CLI.
 
-### Profil CLI (`web`, `headless`)
+### CLI profile (`web`, `headless`)
 
 ```sh
 dsh plugin --profile web add dsh-proof
 ```
 
-ou, depuis ce dépôt :
+Or, from this repository:
 
 ```sh
 pnpm install
@@ -60,33 +82,39 @@ pnpm pack
 dsh plugin --profile web add ./dsh-proof-0.1.2.tgz
 ```
 
-Puis redémarrez le profil : les changements de manifeste et d'exports ne sont pas rechargés à chaud.
+Restart the profile afterwards: manifest and export changes are not hot-reloaded.
 
-## Utilisation
+## Usage
 
-### Automatique
+### Automatic
 
-Après un appel à `write`, `edit`, `apply_patch`, etc., la porte s'active à la fin du tour :
+After a `write`, `edit`, `apply_patch`, or similar call, the gate activates at the end of the turn:
 
-1. elle exécute les checks dans le dossier de la session ;
-2. si tout passe, le tour se termine normalement ;
-3. si un check échoue, la sortie est renvoyée à l'agent via `agent.steer(...)`, qui **empêche la fermeture du tour** et ouvre une étape de correction ;
-4. `maxReruns` borne les relances (2 par défaut).
+1. it runs the checks in the session’s working directory;
+2. if everything passes, the turn ends normally;
+3. if a check fails, the output is sent back to the agent via `agent.steer(...)`, which **prevents the turn from closing** and opens a correction step;
+4. `maxReruns` bounds the retries (2 by default).
 
-Un succès est silencieux. Un échec produit un message `[Proof gate]` dans la conversation.
+Success is silent. A failure produces a `[Proof gate]` message in the conversation.
 
-### Outil `verify`
+### `verify` tool
 
 ```text
-verify()             # exécute tous les checks
-verify(only="test")  # exécute uniquement le check nommé
+verify()             # run every check
+verify(only="test")  # run only the named check
 ```
 
-Il renvoie `{ passed, skipped, cwd, checks[] }` et un rendu texte compact : statut global, nom du check, code de sortie, sortie en cas d'échec.
+It returns `{ passed, skipped, cwd, checks[] }` plus a compact text rendering: overall status, check name, exit code, and output on failure.
+
+### What you will see
+
+- **During a successful run** — nothing in the transcript; the turn simply ends.
+- **On failure** — a synthetic `[Proof gate]` user message containing the failing command output, followed by another agent step.
+- **On demand** — the `verify` tool result with `PASS` or `FAIL`.
 
 ## Configuration
 
-Les valeurs par défaut suffisent sur un projet Node. Pour un réglage explicite, ajoutez une **surcharge de haut niveau** dans `~/.dsh/profiles/<profil>/cordis.patch.yml` :
+The defaults work on a Node project. For explicit settings, add a **top-level override** in `~/.dsh/profiles/<profile>/cordis.patch.yml`:
 
 ```yaml
 - id: proof
@@ -100,83 +128,99 @@ Les valeurs par défaut suffisent sur un projet Node. Pour un réglage explicite
         timeoutMs: 180000
 ```
 
-> Le bundle a déjà inséré la ligne `proof`. Utilisez `- id: proof` pour la surcharger ; un second `insert` avec le même `id` créerait un doublon au démarrage.
+> The bundle already inserts the `proof` row. Use `- id: proof` to override it; a second `insert` with the same `id` would create a duplicate at startup.
 
-| Clé | Défaut | Rôle |
+| Key | Default | Purpose |
 |---|---|---|
-| `enabled` | `true` | Interrupteur général. |
-| `autoDetect` | `true` | Détecte `typecheck`, `lint`, `test` (ou `check`) dans `package.json`. |
-| `checks` | `[]` | Liste `{ name, command, timeoutMs }` ; prioritaire sur l'auto-détection. |
-| `cwd` | `''` | Répertoire des checks ; relatif au dossier de la session. |
-| `maxReruns` | `2` | Nombre maximal de relances correctives par tour (`0` : vérifier sans relancer). |
-| `outputChars` | `6000` | Taille maximale de la sortie renvoyée au modèle. |
-| `watchShell` | `false` | Compter aussi les commandes shell destructrices comme des éditions. |
-| `mutatingShellPattern` | (regex fournie) | Motif des commandes shell considérées comme des éditions. |
-| `includeSubagents` | `false` | Appliquer la porte aux sessions de sous-agents. |
-| `stopOnFirstFailure` | `true` | S'arrêter au premier check en échec. |
+| `enabled` | `true` | Master switch. |
+| `autoDetect` | `true` | Detect `typecheck`, `lint`, `test` (or `check`) in `package.json`. |
+| `checks` | `[]` | List of `{ name, command, timeoutMs }`; takes precedence over auto-detection. |
+| `cwd` | `''` | Directory for the checks; relative to the session directory. |
+| `maxReruns` | `2` | Maximum corrective retries per turn (`0`: verify without retrying). |
+| `outputChars` | `6000` | Maximum output size returned to the model. |
+| `watchShell` | `false` | Treat mutating shell commands as edits too. |
+| `mutatingShellPattern` | (provided regex) | Pattern for shell commands considered edits. |
+| `includeSubagents` | `false` | Apply the gate to subagent sessions. |
+| `stopOnFirstFailure` | `true` | Stop after the first failing check. |
 
-### Détection automatique
+### Auto-detection
 
-Le gestionnaire de paquets est choisi d'après le lockfile (`pnpm-lock.yaml`, `yarn.lock`, `bun.lockb`, sinon npm), **mais uniquement s'il est réellement disponible dans le `PATH`**. Sinon, le plugin se replie sur `npm`. Les scripts suivants sont transformés en commandes :
+The package manager is chosen from the lockfile (`pnpm-lock.yaml`, `yarn.lock`, `bun.lockb`, otherwise npm), **but only if it is actually available on `PATH`**. Otherwise the plugin falls back to `npm`. The following scripts become commands:
 
-- `typecheck` → `npm run typecheck` (ou le gestionnaire détecté) ;
+- `typecheck` → `npm run typecheck` (or the detected manager);
 - `lint` → …
 - `test` → …
-- `check` (uniquement si aucun des trois précédents n'existe).
+- `check` (only when none of the three above exists).
 
-## Fonctionnement
+## How it works
 
-1. Le plugin observe les événements de session. Un appel à `write`, `edit`, `str_replace_editor`, `apply_patch`… marque le workspace comme modifié.
-2. À `agent/turn-stopping`, si des fichiers ont changé, les checks sont exécutés dans le dossier de la session.
-3. En cas d'échec, la sortie est envoyée à l'agent, qui doit corriger avant de conclure.
-4. Le tour ne se termine sans vérification que si les checks passent, ou si `maxReruns` est épuisé (un avertissement est alors journalisé).
+1. The plugin observes session events. A call to `write`, `edit`, `str_replace_editor`, `apply_patch`, and similar tools marks the workspace as edited.
+2. At `agent/turn-stopping`, if files changed, the checks run in the session’s working directory.
+3. On failure, the output is sent back to the agent, which must fix it before finishing.
+4. The turn only ends without verification when the checks pass, or when `maxReruns` is exhausted (a warning is logged).
 
-## Sécurité
+## Security
 
-Les checks sont des **commandes shell exécutées avec les privilèges de l'utilisateur, en dehors du bac à sable de DSH** — comme un script `npm test` lancé à la main. Ne configurez que des commandes de confiance.
+The checks are **shell commands executed with the user’s privileges, outside the DSH sandbox** — like an `npm test` you run yourself. Only configure commands you trust.
 
-Le plugin ne modifie pas les fichiers lui-même. En revanche, les commandes qu'il lance peuvent le faire (formatters, mise à jour de snapshots). Leur sortie est visible par le modèle : évitez d'y imprimer des secrets.
+The plugin does not modify files itself. However, the commands it runs may do so (formatters, snapshot updates). Their output is visible to the model: avoid printing secrets from a check.
 
-## Dépannage
+## Troubleshooting
 
-- **`'pnpm' n'est pas reconnu`** : le gestionnaire du lockfile n'est pas dans le `PATH`. Le plugin se replie désormais sur `npm` ; sinon, installez pnpm ou utilisez des `checks` explicites avec `npm`.
-- **`Verification skipped`** : aucun `package.json` ni check configuré. Ajoutez un script `test` ou des `checks`.
-- **Aucun blocage après une édition** : l'édition a peut-être été faite via `pwsh`/`bash`. Activez `watchShell: true` ou utilisez les outils d'édition.
-- **Les checks sont trop lents** : ajustez `timeoutMs` ou limitez la liste des checks.
+- **`'pnpm' is not recognized`** — the lockfile manager is not on `PATH`. The plugin now falls back to `npm`; otherwise install pnpm or use explicit `checks` with `npm`.
+- **`Verification skipped`** — there is no `package.json` and no configured check. Add a `test` script or explicit `checks`.
+- **The gate does not trigger after an edit** — the edit may have been made through `pwsh`/`bash`. Enable `watchShell: true`, or use the editing tools.
+- **Checks are too slow** — adjust `timeoutMs` or reduce the list of checks.
 
-## Limites assumées
+## Known limitations
 
-- Seuls les outils d'édition connus déclenchent la porte ; le suivi des commandes shell est une heuristique optionnelle.
-- Aucun rollback automatique : le plugin relance la correction, il ne restaure pas les fichiers.
-- Les checks s'exécutent séquentiellement ; un projet dont la suite de tests dépasse le timeout doit ajuster `timeoutMs`.
-- Le suivi est par session ; les sous-agents sont ignorés par défaut.
+- Only known editing tools trigger the gate; shell command tracking is an optional heuristic.
+- No automatic rollback: the plugin retries the correction, it does not restore files.
+- Checks run sequentially; a test suite that exceeds the timeout must raise `timeoutMs`.
+- Tracking is per session; subagents are ignored by default.
 
-## Développement
+## Development
 
 ```sh
 pnpm install
 pnpm build      # tsc → lib/
 pnpm test       # build + tests (node:test)
-pnpm pack       # archive installable
+pnpm pack       # installable archive
 ```
 
-Structure :
+Structure:
 
 ```text
-src/index.ts        entrée Cordis : outil verify, section de prompt, hooks
-src/gate.ts         machine à états de la porte (testable sans DSH)
-src/runner.ts       exécution bornée des commandes
-src/types.ts        configuration + source de message « proof »
-src/__tests__/      tests unitaires
-cordis.patch.yml    couche de configuration du bundle
+src/index.ts        Cordis entry: verify tool, prompt section, hooks
+src/gate.ts         the gate state machine (testable without DSH)
+src/runner.ts       bounded command execution
+src/types.ts        configuration + the “proof” message source
+src/__tests__/      unit tests
+cordis.patch.yml    bundle configuration layer
 ```
 
-## Publication
+## Contributing
 
-Les releases GitHub sont automatisées par le workflow [release.yml](.github/workflows/release.yml) : pousser un tag `v*` exécute les tests, vérifie la version, construit l'archive et crée la release avec l'asset. La publication npm reste manuelle.
+Issues and pull requests are welcome.
 
-Voir [PUBLISHING.md](PUBLISHING.md) pour la checklist complète npm, GitHub et tarball.
+1. Fork the repository and create a topic branch.
+2. Run `pnpm install` and `pnpm test`.
+3. Keep commits in [Conventional Commits](https://www.conventionalcommits.org/) format.
+4. Open a pull request describing the behavior change and the tests that cover it.
 
-## Licence
+CI runs on Ubuntu and Windows. Release steps are documented in [PUBLISHING.md](PUBLISHING.md).
+
+## Documentation
+
+- [Changelog](CHANGELOG.md)
+- [Publishing guide](PUBLISHING.md)
+- [Security policy](SECURITY.md)
+- [DSH plugin packaging guide](https://github.com/deepseek-ai/deepseek-harness/blob/master/docs/user/develop/basic/publish.md)
+
+## Release
+
+GitHub releases are automated: pushing a `v*` tag triggers [release.yml](.github/workflows/release.yml), which runs the tests, checks that the tag matches `package.json`, packs the plugin, and creates the release with the `.tgz` asset. npm publication remains a manual step.
+
+## License
 
 MIT.
