@@ -169,7 +169,9 @@ cordis.patch.yml    couche de configuration du bundle
 
 ## Publication
 
-Voir [PUBLISHING.md](PUBLISHING.md) pour la checklist npm, GitHub et tarball.
+Les releases GitHub sont automatisées par le workflow [release.yml](.github/workflows/release.yml) : pousser un tag `v*` exécute les tests, vérifie la version, construit l'archive et crée la release avec l'asset. La publication npm reste manuelle.
+
+Voir [PUBLISHING.md](PUBLISHING.md) pour la checklist complète npm, GitHub et tarball.
 
 ## Licence
 

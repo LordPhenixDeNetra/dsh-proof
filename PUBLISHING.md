@@ -67,8 +67,34 @@ dsh plugin --profile release add dsh-proof
 
 ## 4. Publier sur GitHub
 
+### 4.1 Release automatique sur tag
+
+Le workflow [`.github/workflows/release.yml`](.github/workflows/release.yml) se déclenche au push d'un tag `v*` :
+
+1. installe les dépendances et exécute `pnpm test` ;
+2. vérifie que le tag correspond à `package.json` (`v0.1.2` ↔ `0.1.2`) ;
+3. construit l'archive avec `pnpm pack` ;
+4. crée la release GitHub et y attache le `.tgz`, avec des notes générées automatiquement.
+
+```sh
+git tag -a v0.1.2 -m "dsh-proof 0.1.2"
+git push origin v0.1.2
+```
+
+Le workflow utilise `GITHUB_TOKEN` avec `permissions: contents: write`. La publication npm n'est **pas** automatisée : elle reste une étape séparée (section 3).
+
+En cas d'échec, le tag reste sur le dépôt. Corrigez, puis supprimez et recréez le tag :
+
+```sh
+git push --delete origin v0.1.2
+git tag -d v0.1.2
+# corrections, commit, puis nouveau tag
+```
+
+### 4.2 Distribution via Git
+
 1. Poussez le dépôt et ajoutez le topic **`dsh-plugin`** (découverte).
-2. Ajoutez un script `prepare` (déjà présent : `npm run build`) pour que les installations Git compilent le paquet.
+2. Ajoutez un script `prepare` (déjà présent : `tsc -p tsconfig.json`) pour que les installations Git compilent le paquet.
 3. Les utilisateurs devront autoriser le script de build :
 
 ```yaml
@@ -87,11 +113,13 @@ dsh plugin --profile web add github:<compte>/dsh-proof#<sha>
 
 ## 5. Distribuer un tarball
 
+Le workflow de release attache automatiquement `dsh-proof-<version>.tgz`. Pour une distribution manuelle :
+
 ```sh
 pnpm pack
 ```
 
-Joignez `dsh-proof-0.1.1.tgz` à une release GitHub. Les utilisateurs l'installent par chemin local ou URL :
+Joignez l'archive à une release GitHub. Les utilisateurs l'installent par chemin local ou URL :
 
 ```sh
 dsh plugin --profile web add ./dsh-proof-0.1.1.tgz
@@ -114,4 +142,6 @@ dsh plugin --profile web add ./dsh-proof-0.1.1.tgz
 - [ ] README et CHANGELOG à jour.
 - [ ] Licence MIT présente.
 - [x] `repository`, `homepage`, `bugs` et `author` renseignés.
+- [ ] Workflow `Release` actif ; tag `v*` poussé et égal à `package.json`.
+- [ ] Release GitHub créée avec l'asset `.tgz`.
 - [ ] Aucun secret dans le dépôt ou l'archive.

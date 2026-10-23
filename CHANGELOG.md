@@ -1,5 +1,11 @@
 # Changelog
 
+## [Unreleased]
+
+### Added
+
+- Tag-triggered GitHub release workflow: tests, tag/version check, pack, release, and `.tgz` asset.
+
 ## [0.1.1] — 2026-10-23
 
 ### Fixed

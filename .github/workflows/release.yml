@@ -1,0 +1,49 @@
+name: Release
+
+on:
+  push:
+    tags: ['v*']
+
+permissions:
+  contents: write
+
+concurrency:
+  group: release-${{ github.ref_name }}
+  cancel-in-progress: false
+
+jobs:
+  release:
+    name: release
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm test
+
+      - name: Check tag matches package.json
+        shell: bash
+        run: |
+          node -e "const fs=require('node:fs'); const p=JSON.parse(fs.readFileSync('package.json','utf8')); if ('v'+p.version !== process.env.GITHUB_REF_NAME) { console.error('Tag/version mismatch: tag='+process.env.GITHUB_REF_NAME+' package='+p.version); process.exit(1) }"
+
+      - name: Pack the plugin
+        run: pnpm pack
+
+      - name: Create GitHub release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release create "$GITHUB_REF_NAME" ./dsh-proof-*.tgz \
+            --verify-tag \
+            --title "dsh-proof ${GITHUB_REF_NAME#v}" \
+            --generate-notes
