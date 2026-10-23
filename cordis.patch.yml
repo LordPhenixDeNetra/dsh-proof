@@ -1,0 +1,7 @@
+- insert:
+    - id: proof
+      name: dsh-proof
+      config:
+        enabled: true
+        autoDetect: true
+        maxReruns: 2
