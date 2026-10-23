@@ -34,7 +34,7 @@ Ne testez pas seulement dans le profil Desktop déjà modifié. Utilisez un `DSH
 $env:DSH_HOME = "C:\Users\DELL\AppData\Local\Temp\dsh-proof-release"
 $env:PATH = "<chemin-vers-pnpm>;$env:PATH"
 
-node <chemin-vers-dsh>/lib/bin.js plugin --profile release add .\dsh-proof-0.1.1.tgz
+node <chemin-vers-dsh>/lib/bin.js plugin --profile release add .\dsh-proof-0.1.2.tgz
 node <chemin-vers-dsh>/lib/bin.js --profile release --dump-config
 node <chemin-vers-dsh>/lib/bin.js --profile release --help
 ```
@@ -122,7 +122,7 @@ pnpm pack
 Joignez l'archive à une release GitHub. Les utilisateurs l'installent par chemin local ou URL :
 
 ```sh
-dsh plugin --profile web add ./dsh-proof-0.1.1.tgz
+dsh plugin --profile web add ./dsh-proof-0.1.2.tgz
 ```
 
 ## 6. Après publication

@@ -1,9 +1,10 @@
 # Changelog
 
-## [Unreleased]
+## [0.1.2] — 2026-10-23
 
 ### Added
 
+- Plugin logo and `icon` manifest field for the DSH Plugins page, GitHub, and npm.
 - Tag-triggered GitHub release workflow: tests, tag/version check, pack, release, and `.tgz` asset.
 
 ## [0.1.1] — 2026-10-23

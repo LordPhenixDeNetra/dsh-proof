@@ -1,5 +1,9 @@
 # dsh-proof — le harnais qui exige des preuves
 
+<p align="center">
+  <img src="public/logo/dsh-proof-icon.png" width="128" alt="Logo dsh-proof : crochets de code formant une porte avec une coche">
+</p>
+
 > **English:** dsh-proof runs your project's typecheck/lint/tests after file edits and prevents the agent from ending the turn while they fail.
 
 Plugin **DeepSeek Harness** (DSH) : après chaque modification de fichiers, il exécute les vérifications du projet (typecheck, lint, tests) et **refuse de laisser l'agent terminer son tour tant qu'elles échouent**. L'agent reçoit la sortie d'erreur et un tour supplémentaire pour corriger — au lieu de déclarer « c'est fait » sans preuve.
@@ -36,7 +40,7 @@ Le mode d'échec le plus coûteux d'un agent de code n'est pas la mauvaise synta
 5. Cochez la case de confiance, installez, puis redémarrez DSH si l'application le demande.
 
 ```text
-N:\OneDrive - Université Cheikh Anta DIOP de DAKAR\MixedProjects\HarnessPluginTest\dsh-proof-0.1.1.tgz
+N:\OneDrive - Université Cheikh Anta DIOP de DAKAR\MixedProjects\HarnessPluginTest\dsh-proof-0.1.2.tgz
 ```
 
 > Le profil `desktop` est géré exclusivement par l'application : `dsh plugin --profile desktop` est refusé par la CLI.
@@ -53,7 +57,7 @@ ou, depuis ce dépôt :
 pnpm install
 pnpm test
 pnpm pack
-dsh plugin --profile web add ./dsh-proof-0.1.1.tgz
+dsh plugin --profile web add ./dsh-proof-0.1.2.tgz
 ```
 
 Puis redémarrez le profil : les changements de manifeste et d'exports ne sont pas rechargés à chaud.

@@ -1,6 +1,6 @@
 {
   "name": "dsh-proof",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "Verification gate for DeepSeek Harness: run typecheck/lint/tests after edits, and keep the agent working until they pass.",
   "type": "module",
   "license": "MIT",
@@ -25,6 +25,7 @@
     "typecheck",
     "guard"
   ],
+  "icon": "./public/logo/dsh-proof-icon.png",
   "main": "lib/index.js",
   "types": "lib/types/index.d.ts",
   "exports": {
@@ -39,6 +40,7 @@
     "lib",
     "!lib/__tests__",
     "!lib/types/__tests__",
+    "public/logo/dsh-proof-icon.png",
     "cordis.patch.yml",
     "README.md",
     "CHANGELOG.md",
