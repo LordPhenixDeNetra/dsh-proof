@@ -6,6 +6,7 @@ on:
 
 permissions:
   contents: write
+  id-token: write
 
 concurrency:
   group: release-${{ github.ref_name }}
@@ -27,6 +28,10 @@ jobs:
         with:
           node-version: 22
           cache: pnpm
+          registry-url: https://registry.npmjs.org
+
+      # Trusted publishing requires npm >= 11.5.1.
+      - run: npm install -g npm@11
 
       - run: pnpm install --frozen-lockfile
       - run: pnpm test
@@ -38,6 +43,9 @@ jobs:
 
       - name: Pack the plugin
         run: pnpm pack
+
+      - name: Publish to npm
+        run: npm publish --provenance --access public
 
       - name: Create GitHub release
         env:

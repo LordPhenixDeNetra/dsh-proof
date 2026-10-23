@@ -1,6 +1,6 @@
 {
   "name": "dsh-proof",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "description": "Verification gate for DeepSeek Harness: run typecheck/lint/tests after edits, and keep the agent working until they pass.",
   "type": "module",
   "license": "MIT",

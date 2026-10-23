@@ -34,7 +34,7 @@ Ne testez pas seulement dans le profil Desktop déjà modifié. Utilisez un `DSH
 $env:DSH_HOME = "C:\Users\DELL\AppData\Local\Temp\dsh-proof-release"
 $env:PATH = "<chemin-vers-pnpm>;$env:PATH"
 
-node <chemin-vers-dsh>/lib/bin.js plugin --profile release add .\dsh-proof-0.1.2.tgz
+node <chemin-vers-dsh>/lib/bin.js plugin --profile release add .\dsh-proof-0.1.3.tgz
 node <chemin-vers-dsh>/lib/bin.js --profile release --dump-config
 node <chemin-vers-dsh>/lib/bin.js --profile release --help
 ```
@@ -46,6 +46,12 @@ Attendu :
 - le profil démarre sans erreur d'import.
 
 ## 3. Publier sur npm
+
+La publication est **automatisée** par le workflow `release.yml` à chaque tag `v*`, via OIDC Trusted Publishing et `npm publish --provenance`. Aucun token npm n'est stocké dans GitHub.
+
+La **première** publication OIDC valide la configuration Trusted Publisher. Elle doit avoir lieu avant l'échéance affichée dans npm (environ 48 heures après sa création).
+
+Pour une publication manuelle de secours (OTP 2FA requis) :
 
 ```sh
 npm login
@@ -72,13 +78,14 @@ dsh plugin --profile release add dsh-proof
 Le workflow [`.github/workflows/release.yml`](.github/workflows/release.yml) se déclenche au push d'un tag `v*` :
 
 1. installe les dépendances et exécute `pnpm test` ;
-2. vérifie que le tag correspond à `package.json` (`v0.1.2` ↔ `0.1.2`) ;
+2. vérifie que le tag correspond à `package.json` (`v0.1.3` ↔ `0.1.3`) ;
 3. construit l'archive avec `pnpm pack` ;
-4. crée la release GitHub et y attache le `.tgz`, avec des notes générées automatiquement.
+4. publie sur npm avec `npm publish --provenance` via OIDC ;
+5. crée la release GitHub et y attache le `.tgz`, avec des notes générées automatiquement.
 
 ```sh
-git tag -a v0.1.2 -m "dsh-proof 0.1.2"
-git push origin v0.1.2
+git tag -a v0.1.3 -m "dsh-proof 0.1.3"
+git push origin v0.1.3
 ```
 
 Le workflow utilise `GITHUB_TOKEN` avec `permissions: contents: write`. La publication npm n'est **pas** automatisée : elle reste une étape séparée (section 3).
@@ -86,8 +93,8 @@ Le workflow utilise `GITHUB_TOKEN` avec `permissions: contents: write`. La publi
 En cas d'échec, le tag reste sur le dépôt. Corrigez, puis supprimez et recréez le tag :
 
 ```sh
-git push --delete origin v0.1.2
-git tag -d v0.1.2
+git push --delete origin v0.1.3
+git tag -d v0.1.3
 # corrections, commit, puis nouveau tag
 ```
 
@@ -122,7 +129,7 @@ pnpm pack
 Joignez l'archive à une release GitHub. Les utilisateurs l'installent par chemin local ou URL :
 
 ```sh
-dsh plugin --profile web add ./dsh-proof-0.1.2.tgz
+dsh plugin --profile web add ./dsh-proof-0.1.3.tgz
 ```
 
 ## 6. Après publication

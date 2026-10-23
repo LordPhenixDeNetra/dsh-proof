@@ -58,12 +58,8 @@ The most expensive failure mode of a coding agent is not bad syntax — it is **
 1. Open the left sidebar (**Ctrl+B** if it is collapsed).
 2. Open the **Plugins** panel (the pinwheel icon below “New session”).
 3. Click **Add plugin**.
-4. Paste the release asset URL, or `dsh-proof` once the npm package is published.
+4. Paste `dsh-proof` (npm), or the latest `.tgz` asset from [Releases](https://github.com/NetraDevLPDN/dsh-proof/releases/latest).
 5. Accept the trust checkbox, install, and restart DSH if prompted.
-
-```text
-https://github.com/NetraDevLPDN/dsh-proof/releases/download/v0.1.2/dsh-proof-0.1.2.tgz
-```
 
 > The `desktop` profile is managed by the Electron app; `dsh plugin --profile desktop` is intentionally refused by the CLI.
 
@@ -79,7 +75,7 @@ Or, from this repository:
 pnpm install
 pnpm test
 pnpm pack
-dsh plugin --profile web add ./dsh-proof-0.1.2.tgz
+dsh plugin --profile web add ./dsh-proof-0.1.3.tgz
 ```
 
 Restart the profile afterwards: manifest and export changes are not hot-reloaded.
@@ -219,7 +215,7 @@ CI runs on Ubuntu and Windows. Release steps are documented in [PUBLISHING.md](P
 
 ## Release
 
-GitHub releases are automated: pushing a `v*` tag triggers [release.yml](.github/workflows/release.yml), which runs the tests, checks that the tag matches `package.json`, packs the plugin, and creates the release with the `.tgz` asset. npm publication remains a manual step.
+GitHub releases and npm publication are automated: pushing a `v*` tag triggers [release.yml](.github/workflows/release.yml), which runs the tests, checks that the tag matches `package.json`, packs the plugin, publishes to npm through OIDC trusted publishing with provenance, and creates the release with the `.tgz` asset.
 
 ## License
 

@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.1.3] — 2026-10-23
+
+### Changed
+
+- Publish the npm package from the tag-triggered release workflow using OIDC trusted publishing and provenance.
+
 ## [0.1.2] — 2026-10-23
 
 ### Added
