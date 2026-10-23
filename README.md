@@ -2,7 +2,7 @@
 
 Plugin **DeepSeek Harness** (DSH) : après chaque modification de fichiers, il exécute les vérifications du projet (typecheck, lint, tests) et **refuse de laisser l'agent terminer son tour tant qu'elles échouent**. L'agent reçoit la sortie d'erreur et un tour supplémentaire pour corriger — au lieu de déclarer « c'est fait » sans preuve.
 
-_______
+____________
 
 ## Pourquoi ce plugin
 
