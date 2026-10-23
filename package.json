@@ -7,11 +7,11 @@
   "author": "LordPhenixDeNetra",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/NetraDevLPDN/HarnessPluginTest.git"
+    "url": "git+https://github.com/NetraDevLPDN/dsh-proof.git"
   },
-  "homepage": "https://github.com/NetraDevLPDN/HarnessPluginTest#readme",
+  "homepage": "https://github.com/NetraDevLPDN/dsh-proof#readme",
   "bugs": {
-    "url": "https://github.com/NetraDevLPDN/HarnessPluginTest/issues"
+    "url": "https://github.com/NetraDevLPDN/dsh-proof/issues"
   },
   "engines": {
     "node": ">=22.19",
