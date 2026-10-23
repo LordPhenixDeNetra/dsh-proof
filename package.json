@@ -1,11 +1,21 @@
 {
   "name": "dsh-proof",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Verification gate for DeepSeek Harness: run typecheck/lint/tests after edits, and keep the agent working until they pass.",
   "type": "module",
   "license": "MIT",
+  "author": "LordPhenixDeNetra",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/NetraDevLPDN/HarnessPluginTest.git"
+  },
+  "homepage": "https://github.com/NetraDevLPDN/HarnessPluginTest#readme",
+  "bugs": {
+    "url": "https://github.com/NetraDevLPDN/HarnessPluginTest/issues"
+  },
   "engines": {
-    "node": ">=22.19"
+    "node": ">=22.19",
+    "dsh": ">=0.2.1-rc.2 <0.3.0"
   },
   "keywords": [
     "dsh-plugin",
@@ -30,7 +40,9 @@
     "!lib/__tests__",
     "!lib/types/__tests__",
     "cordis.patch.yml",
-    "README.md"
+    "README.md",
+    "CHANGELOG.md",
+    "SECURITY.md"
   ],
   "dsh": {
     "bundle": {
@@ -39,8 +51,9 @@
   },
   "scripts": {
     "build": "tsc -p tsconfig.json",
-    "test": "npm run build && node --test lib/__tests__/*.test.js",
-    "prepublishOnly": "npm run build"
+    "test": "tsc -p tsconfig.json && node --test lib/__tests__/*.test.js",
+    "prepare": "tsc -p tsconfig.json",
+    "prepublishOnly": "tsc -p tsconfig.json"
   },
   "peerDependencies": {
     "@deepseek-ai/cordis": "^4.0.5",

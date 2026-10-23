@@ -5,8 +5,8 @@ import { join } from 'node:path'
 import test from 'node:test'
 import type { Agent } from '@deepseek-ai/dsh-agent'
 import type { UserMessage } from '@deepseek-ai/dsh-llm'
-import { ProofGate, detectChecks, isEditTool } from '../gate.js'
-import { runCommand } from '../runner.js'
+import { ProofGate, detectChecks, detectPackageManager, isEditTool } from '../gate.js'
+import { runCommand, truncateOutput } from '../runner.js'
 import { DEFAULT_MUTATING_SHELL, type Config } from '../types.js'
 
 function config(overrides: Partial<Config> = {}): Config {
@@ -25,10 +25,10 @@ function config(overrides: Partial<Config> = {}): Config {
   }
 }
 
-function fakeAgent(cwd: string, id = 'session-1') {
+function fakeAgent(cwd: string | undefined, id = 'session-1', header: Record<string, unknown> = {}) {
   const steered: UserMessage[] = []
   const agent = {
-    session: { id, header: { cwd } },
+    session: { id, header: { ...(cwd ? { cwd } : {}), ...header } },
     steer(message: UserMessage) {
       steered.push(message)
     },
@@ -57,6 +57,26 @@ test('detects conventional package.json scripts in priority order', () => {
   } finally {
     rmSync(dir, { recursive: true, force: true })
   }
+})
+
+test('falls back to npm when the lockfile manager is unavailable', () => {
+  const dir = workspace()
+  try {
+    writeFileSync(join(dir, 'pnpm-lock.yaml'), '')
+    assert.equal(detectPackageManager(dir, (name) => name === 'npm'), 'npm')
+    assert.equal(detectPackageManager(dir, (name) => name === 'pnpm' || name === 'npm'), 'pnpm')
+    assert.match(
+      detectChecks(dir, (name) => name === 'npm')[0]?.command ?? '',
+      /^npm run typecheck$/,
+    )
+  } finally {
+    rmSync(dir, { recursive: true, force: true })
+  }
+})
+
+test('strips terminal colour codes and normalizes newlines', () => {
+  assert.equal(truncateOutput('\u001b[31mred\u001b[0m\r\nline', 100), 'red\nline')
+  assert.equal(truncateOutput('short', 100), 'short')
 })
 
 test('recognises edit tools and optionally mutating shells', () => {
@@ -102,6 +122,7 @@ test('steers the agent with failure output, then clears pending state on success
     assert.equal(steered.length, 1)
     assert.match(steered[0]?.content[0]?.type === 'text' ? steered[0]?.content[0]?.text : '', /expected 2 but got 3/)
     assert.match(steered[0]?.content[0]?.type === 'text' ? steered[0]?.content[0]?.text : '', /Do not report the task as complete/)
+    assert.match(steered[0]?.content[0]?.type === 'text' ? steered[0]?.content[0]?.text : '', /untrusted diagnostic data/)
 
     await gate.onTurnStopping({ agent, turn: 1, signal: new AbortController().signal })
     assert.equal(steered.length, 1)
@@ -149,6 +170,79 @@ test('maxReruns 0 still verifies but never steers', async () => {
     assert.equal(runs, 1)
     assert.equal(steered.length, 0)
     assert.equal(gate.lastReport('session-1')?.passed, false)
+  } finally {
+    rmSync(dir, { recursive: true, force: true })
+  }
+})
+
+test('skips subagent sessions unless includeSubagents is enabled', async () => {
+  const dir = workspace()
+  try {
+    let runs = 0
+    const gate = new ProofGate(config(), {
+      runner: async () => {
+        runs += 1
+        return { exitCode: 1, output: 'broken', timedOut: false }
+      },
+      logger: () => {},
+    })
+    const { agent, steered } = fakeAgent(dir, 'session-1', { origin: 'subagent', delegationDepth: 1 })
+    gate.noteEdit('session-1')
+    await gate.onTurnStopping({ agent, turn: 1, signal: new AbortController().signal })
+    assert.equal(runs, 0)
+    assert.equal(steered.length, 0)
+  } finally {
+    rmSync(dir, { recursive: true, force: true })
+  }
+})
+
+test('skips a session without a working directory', async () => {
+  let runs = 0
+  const gate = new ProofGate(config(), {
+    runner: async () => {
+      runs += 1
+      return { exitCode: 1, output: 'broken', timedOut: false }
+    },
+    logger: () => {},
+  })
+  const { agent, steered } = fakeAgent(undefined)
+  gate.noteEdit('session-1')
+  await gate.onTurnStopping({ agent, turn: 1, signal: new AbortController().signal })
+  assert.equal(runs, 0)
+  assert.equal(steered.length, 0)
+})
+
+test('forgetting a session drops its pending edit state', async () => {
+  const dir = workspace()
+  try {
+    let runs = 0
+    const gate = new ProofGate(config(), {
+      runner: async () => {
+        runs += 1
+        return { exitCode: 0, output: '', timedOut: false }
+      },
+      logger: () => {},
+    })
+    const { agent } = fakeAgent(dir)
+    gate.noteEdit('session-1')
+    gate.forget('session-1')
+    await gate.onTurnStopping({ agent, turn: 1, signal: new AbortController().signal })
+    assert.equal(runs, 0)
+  } finally {
+    rmSync(dir, { recursive: true, force: true })
+  }
+})
+
+test('a timed-out command is never a passing check', async () => {
+  const dir = workspace()
+  try {
+    const gate = new ProofGate(config({ checks: [{ name: 'test', command: 'fake', timeoutMs: 1000 }] }), {
+      runner: async () => ({ exitCode: 0, output: 'timed out', timedOut: true }),
+      logger: () => {},
+    })
+    const report = await gate.run(dir)
+    assert.equal(report.passed, false)
+    assert.equal(report.checks[0]?.ok, false)
   } finally {
     rmSync(dir, { recursive: true, force: true })
   }
