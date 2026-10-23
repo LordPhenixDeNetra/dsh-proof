@@ -2,6 +2,8 @@
 
 Plugin **DeepSeek Harness** (DSH) : après chaque modification de fichiers, il exécute les vérifications du projet (typecheck, lint, tests) et **refuse de laisser l'agent terminer son tour tant qu'elles échouent**. L'agent reçoit la sortie d'erreur et un tour supplémentaire pour corriger — au lieu de déclarer « c'est fait » sans preuve.
 
+_______
+
 ## Pourquoi ce plugin
 
 Le mode d'échec le plus coûteux d'un agent de code n'est pas la mauvaise syntaxe : c'est **la conclusion prématurée**. L'agent modifie trois fichiers, écrit « terminé », et l'utilisateur découvre à la main que le typecheck casse et que deux tests échouent.
